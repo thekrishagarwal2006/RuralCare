@@ -39,7 +39,11 @@ export const AmbulanceDashboard: React.FC = () => {
 
       // Fetch active referral assigned to this ambulance
       const refData = await referralApi.getReferral('ref-1001').catch(() => null);
-      if (refData) setActiveReferral(refData);
+      if (refData && (refData.assigned_ambulance_id === aId || !refData.assigned_ambulance_id)) {
+        setActiveReferral(refData);
+      } else {
+        setActiveReferral(refData);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -48,6 +52,8 @@ export const AmbulanceDashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    setIsMoving(false);
+    setRerouteRecommendation(null);
     loadData(selectedAmbId);
   }, [user, selectedAmbId]);
 
