@@ -58,14 +58,18 @@ const AppRoutes: React.FC = () => {
           <Route path="/hospital" element={<ProtectedRoute><HospitalDashboard /></ProtectedRoute>} />
           <Route path="/hospital/resources" element={<ProtectedRoute><ResourceManagement /></ProtectedRoute>} />
           <Route path="/hospital/referrals" element={<ProtectedRoute><IncomingReferrals /></ProtectedRoute>} />
+          <Route path="/hospital/incoming" element={<ProtectedRoute><IncomingReferrals /></ProtectedRoute>} />
 
           {/* Ambulance Routes */}
           <Route path="/ambulance" element={<ProtectedRoute><AmbulanceDashboard /></ProtectedRoute>} />
 
           {/* Command Centre Routes */}
           <Route path="/command" element={<ProtectedRoute><CommandCenterDashboard /></ProtectedRoute>} />
+          <Route path="/command-center" element={<ProtectedRoute><CommandCenterDashboard /></ProtectedRoute>} />
           <Route path="/command/map" element={<ProtectedRoute><LiveMapPage /></ProtectedRoute>} />
+          <Route path="/live-map" element={<ProtectedRoute><LiveMapPage /></ProtectedRoute>} />
           <Route path="/command/audit" element={<ProtectedRoute><AuditLogPage /></ProtectedRoute>} />
+          <Route path="/audit-logs" element={<ProtectedRoute><AuditLogPage /></ProtectedRoute>} />
 
           {/* Admin / Demo Simulator Route */}
           <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
