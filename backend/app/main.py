@@ -2,14 +2,28 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import engine, Base
+from app.core.database import engine, Base, SessionLocal
+from app.models.models import User
 from app.api import auth, phc, hospitals, referrals, ambulances, rerouting, command_center, demo
 from app.websocket.connection_manager import ws_manager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialise Database Tables (For SQLite / local dev)
+    # Initialise Database Tables
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-seed database if empty (ensures deployed servers have preset accounts out-of-the-box!)
+    try:
+        db = SessionLocal()
+        user_count = db.query(User).count()
+        db.close()
+        if user_count == 0:
+            print("Auto-seeding database on startup...")
+            from seed import seed_database
+            seed_database()
+    except Exception as e:
+        print(f"Auto-seed check skipped/failed: {e}")
+
     await ws_manager.init_redis()
     yield
 
