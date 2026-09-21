@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { hospitalApi } from '../../services/api';
-import { HospitalResource } from '../../types';
-import { Activity, Save, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Hospital, HospitalResource } from '../../types';
+import { Activity, Save, RefreshCw, AlertTriangle, CheckCircle, Building2 } from 'lucide-react';
 
 export const ResourceManagement: React.FC = () => {
   const { user } = useAuth();
+  const [allHospitals, setAllHospitals] = useState<Hospital[]>([]);
+  const [selectedHospId, setSelectedHospId] = useState<string>(user?.associated_entity_id || 'hosp-sahyadri-02');
+  const [currentHospital, setCurrentHospital] = useState<Hospital | null>(null);
+
   const [resources, setResources] = useState<HospitalResource | null>(null);
   const [icuOccupied, setIcuOccupied] = useState(9);
   const [generalOccupied, setGeneralOccupied] = useState(40);
@@ -15,11 +19,15 @@ export const ResourceManagement: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const hospitalId = user?.associated_entity_id || 'hosp-sassoon-01';
-
-  const fetchResources = async () => {
+  const fetchResources = async (hId: string) => {
     try {
-      const data = await hospitalApi.getResources(hospitalId);
+      const hospList = await hospitalApi.getHospitals();
+      setAllHospitals(hospList);
+
+      const hospObj = await hospitalApi.getHospital(hId);
+      setCurrentHospital(hospObj);
+
+      const data = await hospitalApi.getResources(hId);
       setResources(data);
       setIcuOccupied(data.icu_occupied);
       setGeneralOccupied(data.general_beds_occupied);
@@ -33,22 +41,22 @@ export const ResourceManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchResources();
-  }, [user]);
+    fetchResources(selectedHospId);
+  }, [user, selectedHospId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSuccessMsg('');
     try {
-      const updated = await hospitalApi.updateResources(hospitalId, {
+      const updated = await hospitalApi.updateResources(selectedHospId, {
         icu_occupied: icuOccupied,
         general_beds_occupied: generalOccupied,
         ventilators_occupied: ventOccupied,
         oxygen_available: oxygenAvailable
       });
       setResources(updated);
-      setSuccessMsg('⚡ Resource inventory updated successfully! WebSocket event published.');
+      setSuccessMsg(`⚡ Resource inventory updated for ${currentHospital?.name}! WebSocket event published.`);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       alert('Failed to update hospital resources');
@@ -64,20 +72,40 @@ export const ResourceManagement: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       
-      <div className="border-b border-slate-200 pb-4 flex justify-between items-center">
+      {/* Header & Hospital Selector */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Hospital Resource Management</h1>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-sky-600" />
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              {currentHospital?.name || 'Hospital Resource Management'}
+            </h1>
+          </div>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time updates trigger Redis events & WebSocket broadcasts to active ambulances.
+            Real-time capacity updates trigger Redis events & WebSocket broadcasts to active ambulances.
           </p>
         </div>
 
-        <button
-          onClick={fetchResources}
-          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border flex items-center gap-1.5"
-        >
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </button>
+        {/* Hospital Selector Dropdown */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-bold text-slate-600 hidden sm:inline">Select Hospital:</label>
+          <select
+            value={selectedHospId}
+            onChange={(e) => setSelectedHospId(e.target.value)}
+            className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 focus:ring-2 focus:ring-sky-500 cursor-pointer shadow"
+          >
+            {allHospitals.map((h) => (
+              <option key={h.id} value={h.id}>🏥 {h.name}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => fetchResources(selectedHospId)}
+            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2.5 rounded-xl border flex items-center gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {successMsg && (
