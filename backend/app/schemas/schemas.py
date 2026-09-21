@@ -174,13 +174,18 @@ class RerouteEvaluationRequest(BaseModel):
 
 class RerouteDecisionOut(BaseModel):
     referral_id: str
+    referral_code: Optional[str] = None
     decision: RerouteDecisionEnum
     reason: str
-    current_hospital: Optional[HospitalOut] = None
+    current_hospital_id: str
+    current_hospital_name: str
     current_hospital_eta: int
-    recommended_hospital: Optional[HospitalOut] = None
+    recommended_hospital_id: Optional[str] = None
+    recommended_hospital_name: Optional[str] = None
     recommended_hospital_eta: Optional[int] = None
-    timestamp: datetime
+    status: str = "evaluated"
+    timestamp: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 # Audit Event
 class ReferralEventOut(BaseModel):

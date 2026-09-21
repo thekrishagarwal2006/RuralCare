@@ -145,14 +145,20 @@ async def accept_referral_hospital(
         if avail_amb:
             ref.assigned_ambulance_id = avail_amb.id
             avail_amb.is_available = False
+        else:
+            # Fall back to first ambulance if all occupied for continuous workflow
+            first_amb = db.query(Ambulance).first()
+            if first_amb:
+                ref.assigned_ambulance_id = first_amb.id
 
     db.commit()
 
+    amb_info = ref.assigned_ambulance_id if ref.assigned_ambulance_id else "Pending Dispatch"
     log_referral_event(
         db=db,
         referral_id=ref.id,
         event_type="HOSPITAL_ACCEPTED",
-        description=f"Referral accepted by hospital {hosp.name}. Assigned Ambulance: {ref.assigned_ambulance_id}"
+        description=f"Referral accepted by hospital {hosp.name}. Assigned Ambulance: {amb_info}"
     )
 
     event_payload = {

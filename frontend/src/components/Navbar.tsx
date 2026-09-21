@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Activity, ShieldAlert, Truck, Building2, User as UserIcon, LogOut, Radio, Menu, X } from 'lucide-react';
+import { useWebSocketContext } from '../contexts/WebSocketContext';
+import { Activity, ShieldAlert, Truck, Building2, User as UserIcon, LogOut, Radio, Menu, X, Wifi } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const { isConnected } = useWebSocketContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,8 +23,8 @@ export const Navbar: React.FC = () => {
       case 'HOSPITAL_STAFF':
         return [
           { label: 'Hospital Dashboard', path: '/hospital' },
+          { label: 'Incoming Patients', path: '/hospital/incoming' },
           { label: 'Resource Management', path: '/hospital/resources' },
-          { label: 'Incoming Referrals', path: '/hospital/referrals' },
         ];
       case 'AMBULANCE_OPERATOR':
         return [
@@ -30,13 +32,14 @@ export const Navbar: React.FC = () => {
         ];
       case 'COMMAND_CENTER':
       case 'ADMIN':
-      default:
         return [
-          { label: 'Command Centre', path: '/command' },
-          { label: 'Live GIS Map', path: '/command/map' },
-          { label: 'Audit Log', path: '/command/audit' },
-          { label: 'Demo Simulator', path: '/admin' },
+          { label: 'Command Overview', path: '/command-center' },
+          { label: 'Live GIS Map', path: '/live-map' },
+          { label: 'Audit Timeline', path: '/audit-logs' },
+          { label: 'Simulator Control', path: '/admin' },
         ];
+      default:
+        return [];
     }
   };
 
@@ -60,8 +63,9 @@ export const Navbar: React.FC = () => {
             <div>
               <Link to="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 RuralCare
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Emergency Network
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                  {isConnected ? 'Live Sync' : 'Reconnecting...'}
                 </span>
               </Link>
               <p className="text-[11px] text-slate-400 hidden sm:block">AI-Powered Predictive Referral & Routing</p>

@@ -194,13 +194,12 @@ export const AmbulanceDashboard: React.FC = () => {
         </div>
 
         {/* Ambulance Selector Dropdown & Start Trip Button */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-300 hidden sm:inline">Vehicle:</span>
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 flex-1 md:flex-initial">
             <select
               value={selectedAmbId}
               onChange={(e) => setSelectedAmbId(e.target.value)}
-              className="bg-slate-800 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-slate-700 focus:ring-2 focus:ring-amber-500 cursor-pointer shadow"
+              className="w-full md:w-auto bg-slate-800 text-amber-300 font-extrabold text-sm px-4 py-3 rounded-xl border-2 border-slate-700 focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-lg"
             >
               {allAmbulances.map((amb) => (
                 <option key={amb.id} value={amb.id}>
@@ -212,45 +211,45 @@ export const AmbulanceDashboard: React.FC = () => {
 
           <button
             onClick={handleStartTrip}
-            className={`font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 ${
+            className={`flex-1 md:flex-initial font-extrabold text-sm px-6 py-3.5 rounded-xl shadow-xl transition flex items-center justify-center gap-2.5 active:scale-95 ${
               isMoving
-                ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-400'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 ring-4 ring-amber-400/40'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white ring-4 ring-emerald-500/20'
             }`}
           >
-            <Navigation className={`h-4 w-4 ${isMoving ? 'animate-spin text-amber-200' : ''}`} />
-            {isMoving ? '⏸ Pause Trip Simulation' : '🚀 Start Trip & GPS Transit'}
+            <Navigation className={`h-5 w-5 ${isMoving ? 'animate-spin text-slate-950' : ''}`} />
+            {isMoving ? '⏸ PAUSE TRIP' : '🚀 START TRIP & NAVIGATION'}
           </button>
         </div>
       </div>
 
       {/* REROUTE ALERT & RECOMMENDATION BANNER */}
       {rerouteRecommendation && (
-        <div className="bg-rose-950/90 border-2 border-rose-500 text-white p-6 rounded-2xl shadow-2xl space-y-4 animate-pulse">
+        <div className="bg-rose-950 border-4 border-rose-500 text-white p-6 rounded-2xl shadow-2xl space-y-4 animate-pulse">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3">
-              <ShieldAlert className="h-8 w-8 text-rose-400 flex-shrink-0 mt-1" />
+              <ShieldAlert className="h-10 w-10 text-rose-400 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="text-lg font-extrabold text-rose-200">
+                <h3 className="text-xl font-extrabold text-rose-200 tracking-tight">
                   ⚡ DYNAMIC REROUTE RECOMMENDED BY TIME-AWARE ENGINE
                 </h3>
-                <p className="text-xs text-rose-100 mt-1 leading-relaxed">
+                <p className="text-sm text-rose-100 mt-1 leading-relaxed font-medium">
                   {rerouteRecommendation.reason}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/80 p-4 rounded-xl border border-rose-500/40 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/90 p-4 rounded-xl border border-rose-500/50 text-sm">
             <div>
-              <p className="text-slate-400 font-bold uppercase">Current Destination (Depleted)</p>
-              <p className="text-sm font-extrabold text-rose-400">{rerouteRecommendation.current_hospital_name}</p>
-              <p className="text-slate-400 mt-1">ETA: {rerouteRecommendation.current_hospital_eta} mins</p>
+              <p className="text-slate-400 font-bold uppercase text-xs">Current Destination (Depleted)</p>
+              <p className="text-base font-extrabold text-rose-400">{rerouteRecommendation.current_hospital_name}</p>
+              <p className="text-slate-300 text-xs mt-1">ETA: {rerouteRecommendation.current_hospital_eta} mins</p>
             </div>
             <div>
-              <p className="text-emerald-400 font-bold uppercase">Recommended New Destination</p>
-              <p className="text-sm font-extrabold text-emerald-300">{rerouteRecommendation.recommended_hospital_name}</p>
-              <p className="text-slate-300 mt-1">New ETA: {rerouteRecommendation.recommended_hospital_eta} mins</p>
+              <p className="text-emerald-400 font-bold uppercase text-xs">Recommended New Destination</p>
+              <p className="text-base font-extrabold text-emerald-300">{rerouteRecommendation.recommended_hospital_name}</p>
+              <p className="text-slate-200 text-xs mt-1">New ETA: {rerouteRecommendation.recommended_hospital_eta} mins</p>
             </div>
           </div>
 
@@ -258,10 +257,10 @@ export const AmbulanceDashboard: React.FC = () => {
             <button
               onClick={handleAcceptReroute}
               disabled={acceptingReroute}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2 text-sm"
+              className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold py-4 px-10 rounded-xl shadow-2xl transition flex items-center justify-center gap-3 text-base border-2 border-emerald-400"
             >
-              <CheckCircle className="h-5 w-5" />
-              {acceptingReroute ? 'Rerouting...' : 'Accept Reroute & Update Navigation'}
+              <CheckCircle className="h-6 w-6" />
+              {acceptingReroute ? 'Rerouting Navigation...' : 'ACCEPT REROUTE & UPDATE NAVIGATION'}
             </button>
           </div>
         </div>

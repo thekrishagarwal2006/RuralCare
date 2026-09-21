@@ -63,7 +63,7 @@ export const IncomingReferrals: React.FC = () => {
       await referralApi.acceptHospital(refId, selectedHospId);
       fetchIncomingData(selectedHospId);
     } catch (e: any) {
-      alert('Updated referral triage state.');
+      alert(e.response?.data?.detail || 'Failed to accept referral');
     } finally {
       setActionLoading(null);
     }
@@ -75,7 +75,7 @@ export const IncomingReferrals: React.FC = () => {
       await referralApi.completeReferral(refId);
       fetchIncomingData(selectedHospId);
     } catch (e: any) {
-      alert('Completed patient admission.');
+      alert(e.response?.data?.detail || 'Failed to complete referral');
     } finally {
       setActionLoading(null);
     }

@@ -22,7 +22,15 @@ async def evaluate_rerouting(
 
     reqs = referral.requirements
     curr_hosp = db.query(Hospital).filter(Hospital.id == referral.assigned_hospital_id).first()
+    if not curr_hosp or not curr_hosp.resources:
+        return {"error": "Assigned hospital or resource record not found"}
+
     curr_res = curr_hosp.resources
+
+    # Safe requirement flags
+    requires_icu = reqs.requires_icu if reqs else False
+    requires_ventilator = reqs.requires_ventilator if reqs else False
+    requires_oxygen = reqs.requires_oxygen if reqs else False
 
     # 1. Determine Ambulance Location
     amb_lat, amb_lon = None, None
@@ -42,9 +50,9 @@ async def evaluate_rerouting(
     curr_eta = estimate_eta_minutes(curr_dist)
 
     # Check requirement depletion at current hospital
-    icu_depleted = reqs.requires_icu and curr_res.icu_available <= 0
-    vent_depleted = reqs.requires_ventilator and curr_res.ventilators_available <= 0
-    oxy_depleted = reqs.requires_oxygen and not curr_res.oxygen_available
+    icu_depleted = requires_icu and curr_res.icu_available <= 0
+    vent_depleted = requires_ventilator and curr_res.ventilators_available <= 0
+    oxy_depleted = requires_oxygen and not curr_res.oxygen_available
 
     is_current_unsuitable = icu_depleted or vent_depleted or oxy_depleted
 
@@ -58,7 +66,7 @@ async def evaluate_rerouting(
         # Check prediction model for current hospital
         pred = resource_predictor.predict_resource_availability(
             hospital_id=curr_hosp.id,
-            resource_type="ICU" if reqs.requires_icu else "General",
+            resource_type="ICU" if requires_icu else "General",
             current_available=0,
             arrival_eta_minutes=curr_eta
         )
@@ -72,10 +80,12 @@ async def evaluate_rerouting(
         candidate_evals = []
         for cand in all_hospitals:
             cand_res = cand.resources
+            if not cand_res:
+                continue
             # Filter suitability
-            c_icu_ok = not reqs.requires_icu or cand_res.icu_available > 0
-            c_vent_ok = not reqs.requires_ventilator or cand_res.ventilators_available > 0
-            c_oxy_ok = not reqs.requires_oxygen or cand_res.oxygen_available
+            c_icu_ok = not requires_icu or cand_res.icu_available > 0
+            c_vent_ok = not requires_ventilator or cand_res.ventilators_available > 0
+            c_oxy_ok = not requires_oxygen or cand_res.oxygen_available
 
             if c_icu_ok and c_vent_ok and c_oxy_ok:
                 dist = haversine_distance_km(amb_lat, amb_lon, cand.latitude, cand.longitude)
