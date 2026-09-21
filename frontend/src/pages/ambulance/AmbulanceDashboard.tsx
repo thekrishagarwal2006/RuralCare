@@ -39,10 +39,20 @@ export const AmbulanceDashboard: React.FC = () => {
 
       // Fetch active referral assigned to this ambulance
       const refData = await referralApi.getReferral('ref-1001').catch(() => null);
-      if (refData && (refData.assigned_ambulance_id === aId || !refData.assigned_ambulance_id)) {
+      if (refData) {
         setActiveReferral(refData);
-      } else {
-        setActiveReferral(refData);
+
+        // Evaluate reroute recommendation if destination hospital has resource risk or at-risk status
+        try {
+          const evalRes = await reroutingApi.evaluate(refData.id);
+          if (evalRes && evalRes.decision === 'REROUTE') {
+            setRerouteRecommendation(evalRes);
+          } else {
+            setRerouteRecommendation(null);
+          }
+        } catch (e) {
+          console.error('[AmbulanceHUD] Reroute evaluation error:', e);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -53,15 +63,20 @@ export const AmbulanceDashboard: React.FC = () => {
 
   useEffect(() => {
     setIsMoving(false);
-    setRerouteRecommendation(null);
     loadData(selectedAmbId);
   }, [user, selectedAmbId]);
 
   useEffect(() => {
     if (lastEvent) {
       if (lastEvent.event_type === 'DESTINATION_RESOURCE_RISK' || lastEvent.event_type === 'REROUTE_RECOMMENDED') {
-        if (lastEvent.data.decision === 'REROUTE') {
+        if (lastEvent.data && lastEvent.data.decision === 'REROUTE') {
           setRerouteRecommendation(lastEvent.data);
+        } else if (activeReferral) {
+          reroutingApi.evaluate(activeReferral.id).then((evalRes) => {
+            if (evalRes && evalRes.decision === 'REROUTE') {
+              setRerouteRecommendation(evalRes);
+            }
+          }).catch(console.error);
         }
       }
       loadData();
