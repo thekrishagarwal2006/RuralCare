@@ -15,7 +15,7 @@ export const IncomingReferrals: React.FC = () => {
   const queryHospId = searchParams.get('hospital_id');
   const queryTicketId = searchParams.get('ticket_id');
 
-  const defaultHospId = queryHospId || user?.associated_entity_id || 'hosp-sahyadri-02';
+  const defaultHospId = queryHospId || user?.associated_entity_id || 'hosp-sassoon-01';
   const [selectedHospId, setSelectedHospId] = useState<string>(defaultHospId);
 
   const [allHospitals, setAllHospitals] = useState<Hospital[]>([]);
@@ -109,6 +109,7 @@ export const IncomingReferrals: React.FC = () => {
             }}
             className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 focus:ring-2 focus:ring-sky-500 cursor-pointer shadow"
           >
+            <option value="all">🏥 All Network Hospitals (Combined Triage)</option>
             {allHospitals.map((h) => (
               <option key={h.id} value={h.id}>🏥 {h.name}</option>
             ))}
