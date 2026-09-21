@@ -6,9 +6,15 @@ export class WebSocketClient {
   private shouldReconnect: boolean = true;
 
   constructor(endpoint: string, onMessage: (data: any) => void) {
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = import.meta.env.VITE_WS_HOST || '127.0.0.1:8001';
-    this.url = `${wsProtocol}//${host}${endpoint}`;
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api/v1';
+    
+    // Automatically derive WebSocket base URL (e.g., https://... -> wss://...)
+    let wsBase = apiUrl
+      .replace(/^http:/, 'ws:')
+      .replace(/^https:/, 'wss:')
+      .replace(/\/api\/v1\/?$/, '');
+
+    this.url = `${wsBase}${endpoint}`;
     this.onMessageCallback = onMessage;
   }
 
