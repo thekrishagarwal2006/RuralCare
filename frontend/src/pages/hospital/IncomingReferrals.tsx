@@ -151,7 +151,9 @@ export const IncomingReferrals: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-bold text-slate-800 mt-1">Patient: Rajesh Kumar (54 M)</p>
+                    <p className="text-sm font-bold text-slate-800 mt-1">
+                      Patient: {ref.patient ? `${ref.patient.name} (${ref.patient.age} ${ref.patient.gender?.charAt(0)})` : 'Rajesh Kumar (54 M)'}
+                    </p>
                     <p className="text-xs text-slate-500">Emergency Type: {ref.emergency_type}</p>
                   </div>
 

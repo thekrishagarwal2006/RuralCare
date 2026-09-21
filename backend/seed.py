@@ -166,6 +166,48 @@ def seed_database():
     db.add_all([amb_1, amb_2, amb_3])
     db.commit()
 
+    # 4.5 Seed Initial Active Emergency Patient & Referral
+    pat_1 = Patient(
+        id="pat-1001",
+        name="Rajesh Kumar",
+        age=54,
+        gender="Male",
+        contact_number="+91 98230 44112",
+        medical_history="Hypertension, Asthma"
+    )
+    db.add(pat_1)
+    db.commit()
+
+    ref_1 = Referral(
+        id="ref-1001",
+        referral_code="REF-2026-1001",
+        patient_id=pat_1.id,
+        phc_id=phc_a.id,
+        assigned_hospital_id=hosp_a.id,
+        assigned_ambulance_id=amb_1.id,
+        status=ReferralStatus.ACCEPTED,
+        emergency_type="Acute Respiratory Distress",
+        priority="CRITICAL",
+        symptoms="Patient has severe acute breathing difficulty, oxygen saturation 82%, gasping, respiratory distress.",
+        spo2=82,
+        heart_rate=118,
+        blood_pressure="90/60",
+        notes="Patient stabilized with temporary oxygen at Shirur PHC. Urgent tertiary care transfer required."
+    )
+    db.add(ref_1)
+    db.commit()
+
+    req_1 = ReferralRequirement(
+        id="req-1001",
+        referral_id=ref_1.id,
+        requires_icu=True,
+        requires_ventilator=True,
+        requires_oxygen=True,
+        requires_emergency_physician=True
+    )
+    db.add(req_1)
+    db.commit()
+
     # 5. Seed Users for 4 Actor Portals
     users = [
         User(

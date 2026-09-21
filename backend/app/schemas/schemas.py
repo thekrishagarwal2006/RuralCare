@@ -88,6 +88,15 @@ class PatientCreate(BaseModel):
     contact_number: Optional[str] = None
     medical_history: Optional[str] = None
 
+class PatientOut(BaseModel):
+    id: str
+    name: str
+    age: int
+    gender: str
+    contact_number: Optional[str] = None
+    medical_history: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class ReferralCreate(BaseModel):
     patient_name: str
     age: int
@@ -128,6 +137,7 @@ class ReferralOut(BaseModel):
     blood_pressure: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
+    patient: Optional[PatientOut] = None
     requirements: Optional[ReferralRequirementOut] = None
     hospital: Optional[HospitalOut] = None
     phc: Optional[PHCCenterOut] = None

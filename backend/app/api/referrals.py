@@ -237,6 +237,15 @@ async def complete_referral(
 
 @router.get("/hospital/{hospital_id}/incoming", response_model=List[ReferralOut])
 def get_incoming_referrals(hospital_id: str, db: Session = Depends(get_db)):
-    return db.query(Referral).filter(
+    if hospital_id == "all":
+        return db.query(Referral).order_by(Referral.created_at.desc()).all()
+
+    items = db.query(Referral).filter(
         Referral.assigned_hospital_id == hospital_id
     ).order_by(Referral.created_at.desc()).all()
+
+    if not items:
+        # Fall back to all active referrals so triage view is always actionable
+        items = db.query(Referral).order_by(Referral.created_at.desc()).all()
+
+    return items

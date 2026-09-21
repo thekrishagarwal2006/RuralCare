@@ -90,6 +90,7 @@ export interface Referral {
   blood_pressure?: string;
   notes?: string;
   created_at: string;
+  patient?: Patient;
   requirements?: ReferralRequirement;
   hospital?: Hospital;
   phc?: PHCCenter;
