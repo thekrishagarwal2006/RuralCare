@@ -12,6 +12,10 @@ export const AmbulanceDashboard: React.FC = () => {
   const { user } = useAuth();
   const { lastEvent } = useWebSocketContext();
 
+  const [allAmbulances, setAllAmbulances] = useState<Ambulance[]>([]);
+  const defaultAmbId = user?.associated_entity_id || 'amb-1001';
+  const [selectedAmbId, setSelectedAmbId] = useState<string>(defaultAmbId);
+
   const [ambulance, setAmbulance] = useState<Ambulance | null>(null);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [activeReferral, setActiveReferral] = useState<Referral | null>(null);
@@ -22,11 +26,12 @@ export const AmbulanceDashboard: React.FC = () => {
   const [isMoving, setIsMoving] = useState(false);
   const [movingTimer, setMovingTimer] = useState<any>(null);
 
-  const ambId = user?.associated_entity_id || 'amb-1001';
-
-  const loadData = async () => {
+  const loadData = async (aId: string = selectedAmbId) => {
     try {
-      const ambData = await ambulanceApi.getAmbulance(ambId);
+      const ambList = await ambulanceApi.getAmbulances();
+      setAllAmbulances(ambList);
+
+      const ambData = await ambulanceApi.getAmbulance(aId);
       setAmbulance(ambData);
 
       const hospData = await hospitalApi.getHospitals();
@@ -43,8 +48,8 @@ export const AmbulanceDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
-  }, [user]);
+    loadData(selectedAmbId);
+  }, [user, selectedAmbId]);
 
   useEffect(() => {
     if (lastEvent) {
@@ -182,11 +187,26 @@ export const AmbulanceDashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Start Trip / GPS Transit Action Button */}
-        <div className="flex items-center gap-3">
+        {/* Ambulance Selector Dropdown & Start Trip Button */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-300 hidden sm:inline">Vehicle:</span>
+            <select
+              value={selectedAmbId}
+              onChange={(e) => setSelectedAmbId(e.target.value)}
+              className="bg-slate-800 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-slate-700 focus:ring-2 focus:ring-amber-500 cursor-pointer shadow"
+            >
+              {allAmbulances.map((amb) => (
+                <option key={amb.id} value={amb.id}>
+                  🚑 {amb.vehicle_number} ({amb.driver_name})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             onClick={handleStartTrip}
-            className={`font-extrabold text-xs px-6 py-3.5 rounded-xl shadow-lg transition flex items-center gap-2 ${
+            className={`font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 ${
               isMoving
                 ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-400'
                 : 'bg-emerald-600 hover:bg-emerald-700 text-white'
