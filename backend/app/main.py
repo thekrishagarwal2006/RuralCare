@@ -58,7 +58,7 @@ def root():
     return {
         "name": settings.APP_NAME,
         "status": "online",
-        "milestone": "40% Mid-Semester Slice",
+        "version": "1.0.0",
         "docs_url": "/docs"
     }
 

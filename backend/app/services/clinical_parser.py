@@ -8,7 +8,7 @@ class ClinicalParserInterface(ABC):
         pass
 
 class RuleBasedClinicalParser(ClinicalParserInterface):
-    """Deterministic rule-based clinical parser for 40% prototype milestone."""
+    """Deterministic rule-based clinical parser service."""
 
     def parse_symptoms(self, symptoms_text: str, vitals: Dict[str, Any]) -> Dict[str, Any]:
         text_lower = symptoms_text.lower()

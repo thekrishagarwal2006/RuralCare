@@ -26,7 +26,7 @@ def seed_database():
     except Exception:
         db.rollback()
 
-    print("Seeding RuralCare 40% demo dataset...")
+    print("Seeding RuralCare system dataset...")
 
     # 1. Seed PHC Centers
     phc_a = PHCCenter(

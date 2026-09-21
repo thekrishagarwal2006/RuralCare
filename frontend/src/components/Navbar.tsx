@@ -60,8 +60,8 @@ export const Navbar: React.FC = () => {
             <div>
               <Link to="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 RuralCare
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                  40% Mid-Sem Prototype
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Emergency Network
                 </span>
               </Link>
               <p className="text-[11px] text-slate-400 hidden sm:block">AI-Powered Predictive Referral & Routing</p>

@@ -124,10 +124,10 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Preset Accounts for Midsem Evaluation */}
+          {/* Quick Preset Accounts for System Demo */}
           <div className="mt-6 pt-6 border-t border-slate-800">
             <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wider mb-2">
-              Mid-Sem Preset Actor Accounts:
+              Preset Demo Actor Accounts:
             </p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button

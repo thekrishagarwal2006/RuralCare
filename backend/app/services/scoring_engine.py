@@ -9,7 +9,7 @@ def calculate_hospital_score(
     phc_lat: float,
     phc_lon: float
 ) -> Dict[str, Any]:
-    """Calculates prototype decision-support score for a candidate hospital."""
+    """Calculates decision-support score for a candidate hospital."""
     res: HospitalResource = hospital.resources
 
     requires_icu = requirements.requires_icu if requirements else False

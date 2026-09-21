@@ -1,6 +1,6 @@
-# RuralCare 40% Mid-Semester Evaluation Demonstration Guide
+# RuralCare System Demonstration Guide
 
-This guide outlines the step-by-step presentation script to demonstrate the 40% milestone during academic evaluation.
+This guide outlines the step-by-step presentation script to demonstrate the platform.
 
 ## Demo Credentials & Accounts
 

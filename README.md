@@ -1,6 +1,6 @@
 # RuralCare: AI-Powered Predictive Rural Hospital Referral System
 
-> **40% Mid-Semester Evaluation Implementation Slice**
+> **Real-Time Emergency Referral Coordination & Time-Aware Routing Engine**
 
 RuralCare is an AI-assisted real-time emergency referral coordination and time-aware decision-support platform designed for rural healthcare networks.
 
@@ -150,7 +150,7 @@ Access Applications:
 
 ---
 
-## 10. Demo Scenario Script for Mid-Sem Evaluation
+## 10. System Walkthrough & Demo Scenario
 
 1. **Sign In**: Log in as PHC Doctor (`phc_doctor1` / `doctor123`).
 2. **Create Referral**: Input Patient (54yo Male, Respiratory Distress, SpO2 82%). Click **Find Suitable Hospital**.
@@ -162,17 +162,17 @@ Access Applications:
    - Rerouting Engine recommends `REROUTE TO SAHYADRI HOSPITAL (HOSPITAL B)` with +4 min ETA difference rationale.
 7. **Accept Reroute**: Click **Accept Reroute**. Map polyline updates live to Sahyadri Hospital.
 
-See [`docs/midsem-demo.md`](docs/midsem-demo.md) for presentation script.
+See [`docs/system-demo.md`](docs/system-demo.md) for full presentation script.
 
 ---
 
-## 11. Known Limitations & Future Work
+## 11. System Architecture & Roadmap
 
-### 40% Milestone Scope
+### Core Platform Capabilities
 - Rule-based clinical NLP parser and heuristic turnover predictor.
-- Simulated GPS waypoint movement for demonstration.
+- Continuous GPS waypoint movement and time-aware rerouting engine.
 
-### Future Milestones (Phases 2 & 3)
+### Future Roadmap
 - Integration with Whisper voice input & Gemini/GPT-4 clinical extraction.
 - Trained ML-based predictive resource availability models.
 - Push notifications via FCM.

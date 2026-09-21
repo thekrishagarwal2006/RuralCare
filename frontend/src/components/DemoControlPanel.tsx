@@ -100,11 +100,11 @@ export const DemoControlPanel: React.FC<Props> = ({
         <div className="flex items-center space-x-2">
           <ShieldAlert className="h-5 w-5 text-amber-400" />
           <h3 className="font-bold text-base tracking-tight text-slate-100">
-            Mid-Sem Demo Control Panel
+            Live System Control Panel
           </h3>
         </div>
         <span className="text-xs bg-amber-400/20 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-500/30">
-          Faculty Evaluator Controls
+          System Simulator Controls
         </span>
       </div>
 

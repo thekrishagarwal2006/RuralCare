@@ -99,7 +99,7 @@ export const CommandCenterDashboard: React.FC = () => {
 
       </div>
 
-      {/* MIDSEM DEMO CONTROLS PANEL */}
+      {/* LIVE SIMULATION CONTROLS PANEL */}
       <DemoControlPanel onEventTriggered={fetchOverview} />
 
       {/* Main Grid: GIS Live Map & Audit Timeline */}

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/demo", tags=["Demo Simulator Controls"])
 
 @router.post("/trigger-icu-depletion/{hospital_id}")
 async def trigger_icu_depletion(hospital_id: str, db: Session = Depends(get_db)):
-    """Simulates evaluators setting Hospital ICU available count to 0 instantly."""
+    """Simulates setting Hospital ICU available count to 0 instantly."""
     hosp = db.query(Hospital).filter(Hospital.id == hospital_id).first()
     if not hosp or not hosp.resources:
         raise HTTPException(status_code=404, detail="Hospital not found")
