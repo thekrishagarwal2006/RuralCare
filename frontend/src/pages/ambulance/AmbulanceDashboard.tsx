@@ -45,7 +45,14 @@ export const AmbulanceDashboard: React.FC = () => {
   const ambulanceRef = useRef<Ambulance | null>(null);
   ambulanceRef.current = ambulance;
 
-  const loadRouteForAmbulance = async (aId: string, sLat?: number, sLon?: number, eLat?: number, eLon?: number) => {
+  const loadRouteForAmbulance = async (
+    aId: string,
+    sLat?: number,
+    sLon?: number,
+    eLat?: number,
+    eLon?: number,
+    resetDistance: boolean = false
+  ) => {
     try {
       const params = (sLat !== undefined && sLon !== undefined && eLat !== undefined && eLon !== undefined)
         ? { start_lat: sLat, start_lon: sLon, end_lat: eLat, end_lon: eLon }
@@ -59,15 +66,18 @@ export const AmbulanceDashboard: React.FC = () => {
         setTotalDistanceKm(routeRes.distance_km);
         setTotalEtaMin(routeRes.eta_minutes);
         setOsrmSource(routeRes.source || 'osrm');
-        setDistanceTraveled(0);
-        setCompletedPolyline([routeRes.polyline[0]]);
+
+        if (resetDistance || routePolyline.length === 0) {
+          setDistanceTraveled(0);
+          setCompletedPolyline([routeRes.polyline[0]]);
+        }
       }
     } catch (err) {
       console.error('[AmbulanceHUD] Error loading OSRM route:', err);
     }
   };
 
-  const loadData = async (aId: string = selectedAmbId) => {
+  const loadData = async (aId: string = selectedAmbId, resetRoute: boolean = false) => {
     try {
       const ambList = await ambulanceApi.getAmbulances();
       setAllAmbulances(ambList);
@@ -96,14 +106,14 @@ export const AmbulanceDashboard: React.FC = () => {
 
         const destHosp = hospData.find(h => h.id === refData.assigned_hospital_id);
         if (destHosp && refData.phc) {
-          const sLat = ambData.current_latitude || refData.phc.latitude;
-          const sLon = ambData.current_longitude || refData.phc.longitude;
-          await loadRouteForAmbulance(aId, sLat, sLon, destHosp.latitude, destHosp.longitude);
+          const sLat = refData.phc.latitude;
+          const sLon = refData.phc.longitude;
+          await loadRouteForAmbulance(aId, sLat, sLon, destHosp.latitude, destHosp.longitude, resetRoute);
         } else {
-          await loadRouteForAmbulance(aId);
+          await loadRouteForAmbulance(aId, undefined, undefined, undefined, undefined, resetRoute);
         }
       } else {
-        await loadRouteForAmbulance(aId);
+        await loadRouteForAmbulance(aId, undefined, undefined, undefined, undefined, resetRoute);
       }
     } catch (err) {
       console.error(err);
@@ -115,17 +125,20 @@ export const AmbulanceDashboard: React.FC = () => {
   useEffect(() => {
     setIsMoving(false);
     setOldRoutePolyline([]);
-    loadData(selectedAmbId);
+    loadData(selectedAmbId, true);
   }, [user, selectedAmbId]);
 
   useEffect(() => {
     if (lastEvent) {
-      if (
+      const isReferralLifecycleEvent = (
         lastEvent.event_type === 'DESTINATION_RESOURCE_RISK' ||
         lastEvent.event_type === 'REROUTE_RECOMMENDED' ||
         lastEvent.event_type === 'REFERRAL_ACCEPTED' ||
-        lastEvent.event_type === 'REFERRAL_CREATED'
-      ) {
+        lastEvent.event_type === 'REFERRAL_CREATED' ||
+        lastEvent.event_type === 'REFERRAL_COMPLETED'
+      );
+
+      if (isReferralLifecycleEvent) {
         if (lastEvent.data && lastEvent.data.decision === 'REROUTE') {
           setRerouteRecommendation(lastEvent.data);
         } else if (activeReferral) {
@@ -135,8 +148,8 @@ export const AmbulanceDashboard: React.FC = () => {
             }
           }).catch(console.error);
         }
+        loadData(selectedAmbId, false);
       }
-      loadData(selectedAmbId);
     }
   }, [lastEvent]);
 
