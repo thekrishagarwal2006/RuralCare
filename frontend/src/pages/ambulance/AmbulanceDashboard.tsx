@@ -79,7 +79,7 @@ export const AmbulanceDashboard: React.FC = () => {
       setHospitals(hospData);
 
       // Fetch active referral assigned to this ambulance
-      const refData = await referralApi.getReferral('ref-1001').catch(() => null);
+      const refData = await referralApi.getActiveForAmbulance(aId).catch(() => null);
       if (refData) {
         setActiveReferral(refData);
 
@@ -93,9 +93,18 @@ export const AmbulanceDashboard: React.FC = () => {
         } catch (e) {
           console.error('[AmbulanceHUD] Reroute evaluation error:', e);
         }
-      }
 
-      await loadRouteForAmbulance(aId);
+        const destHosp = hospData.find(h => h.id === refData.assigned_hospital_id);
+        if (destHosp && refData.phc) {
+          const sLat = ambData.current_latitude || refData.phc.latitude;
+          const sLon = ambData.current_longitude || refData.phc.longitude;
+          await loadRouteForAmbulance(aId, sLat, sLon, destHosp.latitude, destHosp.longitude);
+        } else {
+          await loadRouteForAmbulance(aId);
+        }
+      } else {
+        await loadRouteForAmbulance(aId);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -111,7 +120,12 @@ export const AmbulanceDashboard: React.FC = () => {
 
   useEffect(() => {
     if (lastEvent) {
-      if (lastEvent.event_type === 'DESTINATION_RESOURCE_RISK' || lastEvent.event_type === 'REROUTE_RECOMMENDED') {
+      if (
+        lastEvent.event_type === 'DESTINATION_RESOURCE_RISK' ||
+        lastEvent.event_type === 'REROUTE_RECOMMENDED' ||
+        lastEvent.event_type === 'REFERRAL_ACCEPTED' ||
+        lastEvent.event_type === 'REFERRAL_CREATED'
+      ) {
         if (lastEvent.data && lastEvent.data.decision === 'REROUTE') {
           setRerouteRecommendation(lastEvent.data);
         } else if (activeReferral) {
@@ -122,6 +136,7 @@ export const AmbulanceDashboard: React.FC = () => {
           }).catch(console.error);
         }
       }
+      loadData(selectedAmbId);
     }
   }, [lastEvent]);
 

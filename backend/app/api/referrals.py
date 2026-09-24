@@ -98,6 +98,37 @@ def get_referral(id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Referral not found")
     return ref
 
+@router.get("/ambulance/{ambulance_id}/active", response_model=Optional[ReferralOut])
+def get_active_ambulance_referral(ambulance_id: str, db: Session = Depends(get_db)):
+    ref = db.query(Referral).filter(
+        Referral.assigned_ambulance_id == ambulance_id,
+        Referral.status.in_([
+            ReferralStatus.ACCEPTED,
+            ReferralStatus.IN_TRANSIT,
+            ReferralStatus.AT_RISK,
+            ReferralStatus.REROUTING,
+            ReferralStatus.PENDING
+        ])
+    ).order_by(Referral.created_at.desc()).first()
+
+    if ref:
+        return ref
+
+    latest_active = db.query(Referral).filter(
+        Referral.status.in_([
+            ReferralStatus.ACCEPTED,
+            ReferralStatus.IN_TRANSIT,
+            ReferralStatus.AT_RISK,
+            ReferralStatus.REROUTING,
+            ReferralStatus.PENDING
+        ])
+    ).order_by(Referral.created_at.desc()).first()
+
+    if latest_active:
+        return latest_active
+
+    return db.query(Referral).order_by(Referral.created_at.desc()).first()
+
 @router.post("/{id}/recommendations", response_model=List[HospitalCandidate])
 def get_hospital_recommendations(id: str, db: Session = Depends(get_db)):
     ref = db.query(Referral).filter(Referral.id == id).first()

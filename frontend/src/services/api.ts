@@ -82,6 +82,10 @@ export const referralApi = {
   getIncomingForHospital: async (hospitalId: string): Promise<Referral[]> => {
     const res = await api.get(`/referrals/hospital/${hospitalId}/incoming`);
     return res.data;
+  },
+  getActiveForAmbulance: async (ambulanceId: string): Promise<Referral | null> => {
+    const res = await api.get(`/referrals/ambulance/${ambulanceId}/active`);
+    return res.data;
   }
 };
 
