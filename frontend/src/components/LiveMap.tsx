@@ -27,11 +27,11 @@ const hospitalIcon = L.divIcon({
   iconAnchor: [18, 18]
 });
 
-const ambulanceIcon = L.divIcon({
+const createAmbulanceIcon = (heading: number = 0) => L.divIcon({
   className: 'custom-map-icon ambulance-icon',
-  html: `<div style="background-color: #f59e0b; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">🚑</div>`,
-  iconSize: [36, 36],
-  iconAnchor: [18, 18]
+  html: `<div style="background-color: #f59e0b; color: white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; border: 2.5px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); transform: rotate(${heading}deg); transition: transform 0.2s ease-out;">🚑</div>`,
+  iconSize: [38, 38],
+  iconAnchor: [19, 19]
 });
 
 interface Props {
@@ -40,6 +40,7 @@ interface Props {
   ambulances?: Ambulance[];
   activeRoute?: [number, number][];
   oldRoute?: [number, number][];
+  completedRoute?: [number, number][];
   center?: [number, number];
   zoom?: number;
 }
@@ -58,6 +59,7 @@ export const LiveMap: React.FC<Props> = ({
   ambulances = [],
   activeRoute = [],
   oldRoute = [],
+  completedRoute = [],
   center = [18.6500, 73.9500],
   zoom = 10
 }) => {
@@ -133,11 +135,18 @@ export const LiveMap: React.FC<Props> = ({
 
         {/* Ambulances */}
         {ambulances.map((amb) => (
-          <Marker key={`amb-${amb.id}`} position={[amb.current_latitude, amb.current_longitude]} icon={ambulanceIcon}>
+          <Marker
+            key={`amb-${amb.id}`}
+            position={[amb.current_latitude, amb.current_longitude]}
+            icon={createAmbulanceIcon(amb.heading || 0)}
+          >
             <Popup>
               <div className="p-1 min-w-[180px]">
                 <h4 className="font-bold text-slate-900 text-sm">Ambulance {amb.vehicle_number}</h4>
                 <p className="text-xs text-slate-600 mt-0.5">Driver: <strong>{amb.driver_name}</strong></p>
+                {amb.heading !== undefined && (
+                  <p className="text-[11px] text-slate-500 font-mono">Bearing: {Math.round(amb.heading)}°</p>
+                )}
                 <div className="pt-2 mt-2 border-t flex flex-col gap-1.5">
                   <a
                     href={`tel:${amb.driver_phone}`}
@@ -146,7 +155,7 @@ export const LiveMap: React.FC<Props> = ({
                     📞 Call Driver ({amb.driver_phone})
                   </a>
                   <span className="text-[10px] text-center text-emerald-600 font-bold bg-emerald-50 py-0.5 rounded border border-emerald-200">
-                    🟢 Live GPS Active
+                    🟢 OSRM Road Navigation Active
                   </span>
                 </div>
               </div>
@@ -154,7 +163,7 @@ export const LiveMap: React.FC<Props> = ({
           </Marker>
         ))}
 
-        {/* Old Deprecated Route (Dotted Red) */}
+        {/* Old Deprecated Route (Dashed Red) */}
         {oldRoute.length > 1 && (
           <Polyline
             positions={oldRoute}
@@ -162,7 +171,15 @@ export const LiveMap: React.FC<Props> = ({
           />
         )}
 
-        {/* Active Route (Solid Blue) */}
+        {/* Completed Distance Path (Dimmed Solid Teal/Slate) */}
+        {completedRoute.length > 1 && (
+          <Polyline
+            positions={completedRoute}
+            pathOptions={{ color: '#64748b', weight: 5, opacity: 0.5 }}
+          />
+        )}
+
+        {/* Active Remaining Route (Solid Blue) */}
         {activeRoute.length > 1 && (
           <Polyline
             positions={activeRoute}

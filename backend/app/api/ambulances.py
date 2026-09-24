@@ -79,3 +79,52 @@ async def update_ambulance_location(
             )
 
     return {"status": "success", "ambulance_id": id, "latitude": loc_in.latitude, "longitude": loc_in.longitude}
+
+from app.services.geo_service import get_osrm_route
+from typing import Optional
+
+@router.get("/{id}/route")
+async def get_ambulance_route(
+    id: str,
+    start_lat: Optional[float] = None,
+    start_lon: Optional[float] = None,
+    end_lat: Optional[float] = None,
+    end_lon: Optional[float] = None,
+    db: Session = Depends(get_db)
+):
+    amb = db.query(Ambulance).filter(Ambulance.id == id).first()
+    if not amb:
+        raise HTTPException(status_code=404, detail="Ambulance not found")
+
+    # If explicit coordinates passed
+    if start_lat is not None and start_lon is not None and end_lat is not None and end_lon is not None:
+        return await get_osrm_route(start_lat, start_lon, end_lat, end_lon)
+
+    # Otherwise look for active referral assigned to this ambulance
+    active_ref = db.query(Referral).filter(
+        Referral.assigned_ambulance_id == id,
+        Referral.status.in_([
+            ReferralStatus.ACCEPTED,
+            ReferralStatus.IN_TRANSIT,
+            ReferralStatus.AT_RISK,
+            ReferralStatus.REROUTED
+        ])
+    ).first()
+
+    if active_ref and active_ref.hospital and active_ref.phc:
+        s_lat = amb.current_latitude if amb.current_latitude else active_ref.phc.latitude
+        s_lon = amb.current_longitude if amb.current_longitude else active_ref.phc.longitude
+        e_lat = active_ref.hospital.latitude
+        e_lon = active_ref.hospital.longitude
+        return await get_osrm_route(s_lat, s_lon, e_lat, e_lon)
+
+    # Fallback to current location to nearest hospital or default
+    if start_lat is not None and start_lon is not None:
+        s_lat, s_lon = start_lat, start_lon
+    else:
+        s_lat, s_lon = amb.current_latitude, amb.current_longitude
+
+    # Default to Sassoon Hospital if no referral
+    e_lat, e_lon = 18.5250, 73.8710
+    return await get_osrm_route(s_lat, s_lon, e_lat, e_lon)
+

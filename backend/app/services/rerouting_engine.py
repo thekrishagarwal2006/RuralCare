@@ -4,7 +4,7 @@ from app.models.models import (
     Referral, Hospital, HospitalResource, ReferralRequirement,
     Ambulance, ReroutingDecision, RerouteDecisionEnum, ReferralStatus
 )
-from app.services.geo_service import haversine_distance_km, estimate_eta_minutes
+from app.services.geo_service import haversine_distance_km, estimate_eta_minutes, get_osrm_route
 from app.services.prediction_service import resource_predictor
 from app.services.audit_service import log_referral_event
 from app.websocket.connection_manager import ws_manager
@@ -45,9 +45,10 @@ async def evaluate_rerouting(
         # Fall back to PHC location if ambulance location not available
         amb_lat, amb_lon = referral.phc.latitude, referral.phc.longitude
 
-    # 2. Calculate current hospital ETA & resource check
-    curr_dist = haversine_distance_km(amb_lat, amb_lon, curr_hosp.latitude, curr_hosp.longitude)
-    curr_eta = estimate_eta_minutes(curr_dist)
+    # 2. Calculate current hospital ETA & resource check via OSRM
+    curr_osrm = await get_osrm_route(amb_lat, amb_lon, curr_hosp.latitude, curr_hosp.longitude)
+    curr_dist = curr_osrm["distance_km"]
+    curr_eta = curr_osrm["eta_minutes"]
 
     # Check requirement depletion at current hospital
     icu_depleted = requires_icu and curr_res.icu_available <= 0
@@ -55,6 +56,8 @@ async def evaluate_rerouting(
     oxy_depleted = requires_oxygen and not curr_res.oxygen_available
 
     is_current_unsuitable = icu_depleted or vent_depleted or oxy_depleted
+
+    rec_polyline = curr_osrm.get("polyline", [])
 
     if not is_current_unsuitable:
         # Current hospital is still capable
@@ -88,12 +91,12 @@ async def evaluate_rerouting(
             c_oxy_ok = not requires_oxygen or cand_res.oxygen_available
 
             if c_icu_ok and c_vent_ok and c_oxy_ok:
-                dist = haversine_distance_km(amb_lat, amb_lon, cand.latitude, cand.longitude)
-                eta = estimate_eta_minutes(dist)
+                cand_osrm = await get_osrm_route(amb_lat, amb_lon, cand.latitude, cand.longitude)
                 candidate_evals.append({
                     "hospital": cand,
-                    "distance_km": dist,
-                    "eta": eta
+                    "distance_km": cand_osrm["distance_km"],
+                    "eta": cand_osrm["eta_minutes"],
+                    "polyline": cand_osrm.get("polyline", [])
                 })
 
         candidate_evals.sort(key=lambda x: x["eta"])
@@ -116,6 +119,7 @@ async def evaluate_rerouting(
                       f"ETA {best_cand['eta']} min ({'+' if eta_delta >= 0 else ''}{eta_delta} min difference).")
             rec_hosp = best_cand["hospital"]
             rec_eta = best_cand["eta"]
+            rec_polyline = best_cand.get("polyline", [])
         else:
             decision = RerouteDecisionEnum.WAIT_AND_STABILIZE
             reason = f"No alternative hospital with available resources found in immediate region. Continue to {curr_hosp.name} under emergency stabilization."
@@ -159,6 +163,7 @@ async def evaluate_rerouting(
         "recommended_hospital_id": rec_hosp.id if rec_hosp else None,
         "recommended_hospital_name": rec_hosp.name if rec_hosp else None,
         "recommended_hospital_eta": rec_eta,
+        "polyline": rec_polyline,
         "status": referral.status.value
     }
 

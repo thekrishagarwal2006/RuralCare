@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {
   User, Hospital, HospitalResource, PHCCenter, Referral,
-  HospitalCandidate, Ambulance, RerouteEvaluationResult
+  HospitalCandidate, Ambulance, RerouteEvaluationResult, OSRMRouteResponse
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api/v1';
@@ -101,6 +101,13 @@ export const ambulanceApi = {
       speed,
       heading
     });
+    return res.data;
+  },
+  getRoute: async (
+    id: string,
+    params?: { start_lat?: number; start_lon?: number; end_lat?: number; end_lon?: number }
+  ): Promise<OSRMRouteResponse> => {
+    const res = await api.get(`/ambulances/${id}/route`, { params });
     return res.data;
   }
 };

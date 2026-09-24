@@ -119,6 +119,18 @@ export interface Ambulance {
   current_latitude: number;
   current_longitude: number;
   is_available: boolean;
+  heading?: number;
+  speed?: number;
+}
+
+export interface OSRMRouteResponse {
+  source: 'osrm' | 'fallback';
+  distance_km: number;
+  eta_minutes: number;
+  polyline: [number, number][];
+  duration_sec: number;
+  distance_m: number;
+  steps?: any[];
 }
 
 export interface RerouteEvaluationResult {
@@ -132,6 +144,7 @@ export interface RerouteEvaluationResult {
   recommended_hospital_id?: string;
   recommended_hospital_name?: string;
   recommended_hospital_eta?: number;
+  polyline?: [number, number][];
   status: string;
 }
 

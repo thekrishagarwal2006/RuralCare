@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { commandCenterApi } from '../../services/api';
+import { commandCenterApi, ambulanceApi } from '../../services/api';
 import { StatusBadge } from '../../components/StatusBadge';
 import { DemoControlPanel } from '../../components/DemoControlPanel';
 import { LiveMap } from '../../components/LiveMap';
@@ -10,12 +10,22 @@ import { Activity, ShieldAlert, Truck, Building2, MapPin, Radio, Clock, AlertTri
 export const CommandCenterDashboard: React.FC = () => {
   const { lastEvent } = useWebSocketContext();
   const [data, setData] = useState<any>(null);
+  const [activeRoute, setActiveRoute] = useState<[number, number][]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOverview = async () => {
     try {
       const res = await commandCenterApi.getOverview();
       setData(res);
+
+      try {
+        const routeRes = await ambulanceApi.getRoute('amb-1001');
+        if (routeRes && routeRes.polyline) {
+          setActiveRoute(routeRes.polyline);
+        }
+      } catch (e) {
+        console.error("Failed to fetch active route for command center", e);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -111,6 +121,7 @@ export const CommandCenterDashboard: React.FC = () => {
             phcs={data?.phcs || []}
             hospitals={data?.hospitals || []}
             ambulances={data?.ambulances || []}
+            activeRoute={activeRoute}
             center={[18.6500, 73.9500]}
             zoom={10}
           />

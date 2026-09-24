@@ -25,16 +25,20 @@ export const DemoControlPanel: React.FC<Props> = ({
     setLog(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 15)]);
   };
 
-  // Predefined simulated route coordinates (Shirur PHC -> Sassoon Hospital, Pune)
-  const routeWaypoints: [number, number][] = [
-    [18.8286, 74.3789], // Shirur PHC
-    [18.8000, 74.2500],
-    [18.7500, 74.1000],
-    [18.6800, 73.9800],
-    [18.6000, 73.9200],
-    [18.5500, 73.8900],
-    [18.5250, 73.8710]  // Sassoon Hospital
-  ];
+  const [osrmPolyline, setOsrmPolyline] = useState<[number, number][]>([]);
+
+  const fetchOsrmPolyline = async () => {
+    try {
+      const res = await ambulanceApi.getRoute(ambulanceId);
+      if (res && res.polyline && res.polyline.length > 0) {
+        setOsrmPolyline(res.polyline);
+        return res.polyline;
+      }
+    } catch (e) {
+      console.error("Failed to fetch OSRM route for DemoControlPanel", e);
+    }
+    return [];
+  };
 
   const handleTriggerIcuDepletion = async () => {
     setLoading(true);
@@ -64,13 +68,19 @@ export const DemoControlPanel: React.FC<Props> = ({
     }
   };
 
-  const handleSimulateStep = async () => {
-    const nextStep = (simStep + 1) % routeWaypoints.length;
-    const [lat, lon] = routeWaypoints[nextStep];
+  const handleSimulateStep = async (polylineToUse?: [number, number][]) => {
+    let poly = polylineToUse || osrmPolyline;
+    if (!poly || poly.length === 0) {
+      poly = await fetchOsrmPolyline();
+    }
+    if (!poly || poly.length === 0) return;
+
+    const nextStep = (simStep + 1) % poly.length;
+    const [lat, lon] = poly[nextStep];
     setSimStep(nextStep);
 
     try {
-      addLog(`Pushed Ambulance GPS Tick #${nextStep + 1}: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`);
+      addLog(`Pushed OSRM GPS Tick #${nextStep + 1}/${poly.length}: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`);
       await ambulanceApi.updateLocation(ambulanceId, lat, lon, 55, 240);
       if (onEventTriggered) onEventTriggered();
     } catch (e: any) {
@@ -78,7 +88,7 @@ export const DemoControlPanel: React.FC<Props> = ({
     }
   };
 
-  const toggleSimulation = () => {
+  const toggleSimulation = async () => {
     if (isSimulating) {
       clearInterval(simInterval);
       setSimInterval(null);
@@ -86,10 +96,11 @@ export const DemoControlPanel: React.FC<Props> = ({
       addLog("GPS Simulation paused.");
     } else {
       setIsSimulating(true);
-      addLog("Starting continuous Ambulance GPS trip simulation...");
+      addLog("Fetching dynamic OSRM road geometry & starting trip...");
+      const poly = await fetchOsrmPolyline();
       const interval = setInterval(() => {
-        handleSimulateStep();
-      }, 3000);
+        handleSimulateStep(poly);
+      }, 2000);
       setSimInterval(interval);
     }
   };
@@ -160,7 +171,7 @@ export const DemoControlPanel: React.FC<Props> = ({
               {isSimulating ? 'Pause Trip' : 'Start Simulation Trip'}
             </button>
             <button
-              onClick={handleSimulateStep}
+              onClick={() => handleSimulateStep()}
               className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs py-2 px-3 rounded-lg transition"
             >
               Step Tick
